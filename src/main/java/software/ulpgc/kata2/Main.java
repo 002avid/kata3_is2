@@ -1,15 +1,25 @@
 package software.ulpgc.kata2;
 
+import software.ulpgc.kata2.io.MovieDeserializer;
+import software.ulpgc.kata2.io.RemoteMovieLoader;
+import software.ulpgc.kata2.model.Histogram;
+import software.ulpgc.kata2.model.Movie;
+import software.ulpgc.kata2.tasks.HistogramBuilder;
+
 import java.io.IOException;
 import java.util.List;
 
 public class Main {
+    private static  final String url = "https://datasets.imdbws.com/title.basics.tsv.gz";
     public static void main(String[] args) throws IOException {
-        try(RemoteMovieReader reader = new RemoteMovieReader()) {
-            List<Movie> movies = reader.readAll();
-            for (Movie movie: movies){
-                System.out.println(movie);
-            }
-        };
+        List<Movie> movies = new RemoteMovieLoader(url, MovieDeserializer::fromTsv).loadAll();
+        display(new HistogramBuilder(Movie::year).build(movies));
+        display(new HistogramBuilder(m -> m.duration() / 60).build(movies));
+
+    }
+
+    private static void display(Histogram histogram) {
+        for (int key : histogram)
+            System.out.println(key + " " + histogram.count(key));
     }
 }
